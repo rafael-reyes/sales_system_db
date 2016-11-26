@@ -100,7 +100,7 @@ public class App {
         }  
     }
     
-    public static void readData(){
+    public static void readData() throws FileNotFoundException, SQLException{
     	System.out.println("\nType in the Source Data Folder Path: ");
     	Scanner input = new Scanner(System.in);
         String folderPath;
@@ -108,10 +108,77 @@ public class App {
         folderPath = input.nextLine();//read folder path from user input
         input.close();
     	File folder = new File(folderPath);
+    	File[] listOfFiles = null;
     	
-    	File[] listOfFiles = folder.listFiles();
-    	    for (int i = 0; i < listOfFiles.length; i++) {
-    	        System.out.println(listOfFiles[i].getAbsolutePath());
-    	    }
+    	try {
+    		listOfFiles = folder.listFiles();
+    		for (int i = 0; i < listOfFiles.length; i++) {
+//        		System.out.println(listOfFiles[i].getAbsolutePath());
+    			readFile(listOfFiles[i].getAbsolutePath());
+        	}
+    	} catch (NullPointerException e) {
+    		System.err.println(folderPath + " directory does not exist.");
+    		//initialMenu();
+    	}	
+    }
+    public static void readFile(String fileName) throws FileNotFoundException, SQLException{
+    	File file = new File(fileName);
+    	Scanner data = null;
+        try {
+			data = new Scanner(file).useDelimiter("\t|\n");
+		} catch (FileNotFoundException e) {
+			System.err.println(fileName + " not found.");
+            System.out.println("Back to Main Menu!");
+            initialMenu();
+		}
+        if(fileName.contains("category.txt")){//insert into category
+            while (data.hasNext() == true) {
+            	System.out.println(data.nextInt()); //c_id
+            	System.out.println(data.next()); //c_name
+            }
+            System.out.println("\nProcessing.....Done");
+
+        } else if(fileName.contains("manufacturer.txt")){//insert into manufacturer
+            while (data.hasNext() == true) {
+                System.out.println(data.nextInt());//m_id
+                System.out.println(data.next());//m_name
+                System.out.println(data.next());//m_address
+                System.out.println(data.nextInt());//m_phone number
+            }
+            System.out.println("\nProcessing.....Done");
+        } 
+            else if(fileName.contains("part.txt")){//insert into part
+            while (data.hasNext() == true) {
+            	System.out.println(data.nextInt());//p_id
+            	System.out.println(data.next());//p_name
+            	System.out.println(data.nextInt());//p_price
+            	System.out.println(data.nextInt());//m_id
+            	System.out.println(data.nextInt());//c_id
+        		System.out.println(data.nextInt());//p_warranty
+            	System.out.println(data.nextInt());//p_quality
+            }
+            System.out.println("\nProcessing.....Done");
+        } 
+            else if(fileName.contains("salesperson.txt")){//insert into salesperson
+            while (data.hasNext() == true) {
+            	System.out.println(data.nextInt());//s_id
+            	System.out.println(data.next());//s_name
+            	System.out.println(data.next());//s_address
+            	System.out.println(data.nextInt());//s_phone
+            	System.out.println(data.nextInt());//s_experience
+            }
+            System.out.println("\nProcessing.....Done");
+        }
+
+        else if(fileName.contains("transaction.txt")){//insert into transactions
+            while (data.hasNext() == true) {
+            	System.out.println(data.nextInt());//t_id
+            	System.out.println(data.nextInt());//p_id
+            	System.out.println(data.nextInt());//s_id
+            	System.out.println(data.next());//t_date
+            }
+            System.out.println("\nProcessing.....Done");
+        }
+        data.close();
     }
 }
