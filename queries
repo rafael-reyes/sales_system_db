@@ -67,3 +67,61 @@ System.out.println(
 "Part: " + countP + "\n" +
 "Salesperson: " + countS + "\n" +
 "TransactionRecords: " + countT);
+
+
+
+/////Salesperson/////
+//2.1.1a Search by part name
+String Name1 = "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity,P.pWarrantyPeriod, P.pPrice FROM Part P, Manufacturer M, Category C"
++ "WHERE P.pName LIKE '%Part_name_insert%'";
+//2.1.1b Search by Manufacturer name
+String Name2 = "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity,P.pWarrantyPeriod, P.pPrice FROM Part P, Manufacturer M, Category C"
++ "WHERE M.mName LIKE '%Manufacturer_name_insert%'";
+//2.1.2a Order by ASC
+String OrderA = "ORDER BY P.pPrice ASC";
+//2.1.2b Order by DESC
+String OrderB = "ORDER BY P.pPrice DESC";
+
+#Conditional resultset based on selection
+//If 1a,2a
+ResultSet rs = stmt.executeQuery(Name1 + " " + OrderA)
+//If 1a,2b
+ResultSet rs = stmt.executeQuery(Name1 + " " + OrderB)
+//If 1b,2a
+ResultSet rs = stmt.executeQuery(Name2 + " " + OrderA)
+//If 1b,2b
+ResultSet rs = stmt.executeQuery(Name2 + " " + OrderB)
+
+//2.2 Sale of part
+int availQty = stmt.executeUpdate("SELECT pAvailableQuantity FROM Part" 
++ "WHERE '%Part_id_insert%' = pID AND pAvailableQuantity > 0");
+//if NULL result, return "part not available", 
+//ELSE Update TransactionRecords
+stmt.executeUpdate("INSERT INTO TransactionRecords (pID, sID, tDate)" 
++ "VALUES('%Part_ID_insert%', '%Salesperson_ID_insert%', GETDATE())");
+//Update pAvailableQuantity
+stmt.executeUpdate("UPDATE Part SET pAvailableQuantity = pAvailableQuantity - 1"
++ "WHERE pID = '%Part_ID_insert%'");
+
+
+
+/////Manager/////
+//3.1Count no. of transaction records by given range
+String tCount = "SELECT sID, sName, sExperience, COUNT(*) AS NumberOfTransaction FROM Salesperson"
++ "WHERE sExperience BETWEEN '%Lower_input%' AND '%Upper_input%'";
+
+ResultSet rs_tCount = stmt.executeUpdate(tCount)
+
+//3.2Manufacturer Sales Value
+String mSort = "SELECT M.mID, M.mName, SUM(P.pPrice) AS TotalSalesValue FROM Manufacturer M, Part P, TransactionRecords T"
++ "WHERE M.mID = P.mID AND P.pID = T.pID"
++ "GROUP BY M.mName ORDER BY TotalSalesValue DESC";
+
+ResultSet rs_mSort = stmt.executeUpdate(mSort)
+
+//3.3N popular parts
+String popParts = "SELECT P.pID, P.pName, COUNT(*) AS TransactionCount FROM Part P, TransactionRecords T"
++ "WHERE P.pID = T.pID ORDER BY NoOfTransaction DESC"
++ "LIMIT '%Number_input%'";
+
+ResultSet rs_popParts = stmt.executeUpdate(popParts)
