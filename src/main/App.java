@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.sql.Statement;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -21,12 +22,12 @@ public class App {
     private final static String DB_PASSWORD = "fbf08767";//"e9577d46";
 	private final static String DB_URL = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2712/"+DB_USERNAME+"?autoReconnect=true&useSSL=false";
     
-	private final static SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+	private final static SimpleDateFormat dateForm = new SimpleDateFormat("dd/MM/yyyy");
     static boolean is_table_created = false;
     
     private static Scanner input;
     private static Connection conn;
-    public static void main(String[] args) throws FileNotFoundException, SQLException, InterruptedException{
+    public static void main(String[] args) throws FileNotFoundException, SQLException, InterruptedException, ParseException{
     	//Load JDBC Driver "oracle.jdbc.driver.OracleDriver"
     	try {
 			Class.forName("com.mysql.jdbc.Driver");
@@ -64,7 +65,7 @@ public class App {
 	    conn.close();
     }
     
-    private static void initialMenu()throws SQLException, FileNotFoundException, InterruptedException{
+    private static void initialMenu()throws SQLException, FileNotFoundException, InterruptedException, ParseException{
 
         input = new Scanner(System.in);
         while (true) {
@@ -123,7 +124,7 @@ public class App {
     }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ADMINISTRATOR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     
-    private static void administrator() throws SQLException, FileNotFoundException, InterruptedException{   
+    private static void administrator() throws SQLException, FileNotFoundException, InterruptedException, ParseException{   
         Scanner sc = new Scanner(System.in);
         while(true) {
             System.out.println("\nWhat kind of operation would you like to perform??");
@@ -194,7 +195,7 @@ public class App {
         }   
     }
     
-    public static void loadData() throws FileNotFoundException, SQLException, InterruptedException{
+    public static void loadData() throws FileNotFoundException, SQLException, InterruptedException, ParseException{
     	System.out.println("\nType in the Source Data Folder Path: ");
     	Scanner input2 = new Scanner(System.in);
         String folderPath;
@@ -215,7 +216,7 @@ public class App {
     	}
     }
     
-    public static void readFile(String fileName) throws FileNotFoundException, SQLException{
+    public static void readFile(String fileName) throws FileNotFoundException, SQLException, ParseException{
     	File file = new File(fileName);
     	Scanner data = null;
         try {
@@ -225,7 +226,6 @@ public class App {
             System.out.println("Back to Main Menu!");
 		}
         PreparedStatement pstmt=null;
-        //Connection conn2 = null;
         
         if(fileName.contains("category.txt")){//inserting into Category
         	pstmt = conn.prepareStatement(App.Queries.INSERTCATEGORIES);
@@ -234,7 +234,7 @@ public class App {
                  pstmt.setString(2, data.next());
                  pstmt.executeUpdate();
             }
-            System.out.println("\nProcessing.....Done");
+//            System.out.println("\nProcessing.....Done");
 
         } else if(fileName.contains("manufacturer.txt")){//inserting into Manufacturer
         	pstmt = conn.prepareStatement(App.Queries.INSERTMANUFACTURERS);
@@ -245,7 +245,7 @@ public class App {
                 pstmt.setInt(4, data.nextInt());
                 pstmt.executeUpdate();
             }
-            System.out.println("\nProcessing.....Done");
+//            System.out.println("\nProcessing.....Done");
         } 
             else if(fileName.contains("part.txt")){//inserting into Part
             pstmt = conn.prepareStatement(App.Queries.INSERTPARTS);
@@ -259,7 +259,7 @@ public class App {
                 pstmt.setInt(7, data.nextInt());
                 pstmt.executeUpdate();
             }
-            System.out.println("\nProcessing.....Done");
+//            System.out.println("\nProcessing.....Done");
         } 
             else if(fileName.contains("salesperson.txt")){//insert into Salesperson
             pstmt = conn.prepareStatement(App.Queries.INSERTSALESPERSONS);
@@ -271,7 +271,7 @@ public class App {
                 pstmt.setInt(5, data.nextInt());
                 pstmt.executeUpdate();
             }
-            System.out.println("\nProcessing.....Done");
+//            System.out.println("\nProcessing.....Done");
         }
 
         else if(fileName.contains("transaction.txt")){//insert into TransactionRecords
@@ -280,12 +280,11 @@ public class App {
             	pstmt.setInt(1, data.nextInt());
                 pstmt.setInt(2, data.nextInt());
                 pstmt.setInt(3, data.nextInt());
-                pstmt.setString(4, data.next());
-                System.out.println(pstmt);
+                java.sql.Date dateDB = new java.sql.Date(dateForm.parse(data.next()).getTime());
+                pstmt.setDate(4, dateDB);
                 pstmt.executeUpdate();
             }
             System.out.println("\nProcessing.....Done");
-            //conn2.close();
         }
     }
     
@@ -337,6 +336,10 @@ public class App {
             "INSERT INTO Salesperson VALUES(?,?,?,?,?);";
 
         public final static String INSERTTRANSACTIONS =
-            "INSERT INTO TransactionRecords VALUES(?,?,?,to_date(?, 'DD/MM/YYYY'));";
+            "INSERT INTO TransactionRecords VALUES(?,?,?,?);";
+            //"INSERT INTO TransactionRecords VALUES(?,?,?,to_date(?, 'DD/MM/YYYY'));";
+        	//"INSERT INTO TransactionRecords VALUES(?,?,?,str_to_date(?, 'DD/MM/YYYY'));";
+        	//"INSERT INTO TransactionRecords VALUES(?,?,?,DATE_FORMAT(?,'%d/%m/%Y'));"; 
+            //"INSERT INTO TransactionRecords VALUES(?,?,?,CONVERT(?,tDate,103));";
     }
 }
