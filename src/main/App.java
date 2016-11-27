@@ -37,8 +37,8 @@ public class App {
 		ResultSet rs = null;
         
         //example query
-        String tableName = "part";
-        String query = "select count(*) from  " + tableName;
+//        String tableName = "part";
+//        String query = "select count(*) from  " + tableName;
 
 		try {
 			conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
