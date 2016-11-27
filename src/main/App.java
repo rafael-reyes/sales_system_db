@@ -8,7 +8,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class App {
 	
@@ -19,51 +21,51 @@ public class App {
 	private final static SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
     static boolean is_table_created = false;
     
-    public static void main(String[] args) throws FileNotFoundException, SQLException{
+    private static Scanner input;
+    public static void main(String[] args) throws FileNotFoundException, SQLException, InterruptedException{
     	//Load JDBC Driver "oracle.jdbc.driver.OracleDriver"
 
-//    	try {
-//			Class.forName("com.mysql.jdbc.Driver");
-//		} catch (ClassNotFoundException e) {
-//			System.err.println("Unable to load the driver class!");
-//			return;
-//		}
-//    	
-//    	Connection conn = null;
-//		Statement stmt = null;
-//		ResultSet rs = null;
-//        
-//        //example query
-//        String tableName = "part";
-//        String query = "select count(*) from  " + tableName;
-//
-//		try {
-//			conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
-//	        stmt = conn.createStatement();
+    	try {
+			Class.forName("com.mysql.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			System.err.println("Unable to load the driver class!");
+			return;
+		}
+    	
+    	Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+        
+        //example query
+        String tableName = "part";
+        String query = "select count(*) from  " + tableName;
+
+		try {
+			conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+	        stmt = conn.createStatement();
 //	        rs = stmt.executeQuery(query);   
-//	        System.out.println("hellooooo");
-//	        is_table_created = true;
-//	        
-//	    } catch (Exception e ) {
-//	    	//table does not exist or some other problem
-//	    	e.printStackTrace();    
-//	    	System.out.println("byeee");
-//	    	is_table_created = false;
-//	    }
-//		initialMenu();
-//		
-//	    stmt.close();
-//	    conn.close();
-    	readData();
+	        System.out.println("hellooooo");
+	        is_table_created = true;
+	        
+	    } catch (Exception e ) {
+	    	//table does not exist or some other problem
+	    	e.printStackTrace();    
+	    	System.out.println("byeee");
+	    	is_table_created = false;
+	    }
+		
+	    stmt.close();
+	    conn.close();
+    	System.out.println("Welcome to Sales System!");
+	    initialMenu();
     }
     
-    private static void initialMenu()throws SQLException, FileNotFoundException{
-    	System.out.println("Welcome to Sales System!");
-        Scanner input = new Scanner(System.in);
+    private static void initialMenu()throws SQLException, FileNotFoundException, InterruptedException{
 
+        input = new Scanner(System.in);
         while (true) {
             System.out.println("\n--------------- Main Menu -------------------");
-            System.out.println("What kind of operation would you like to perform?\n");
+            System.out.println("What kind of operation would you like to perform?");
             System.out.println("1. Operations for administrator");
             System.out.println("2. Operation for salesperson");
             System.out.println("3. Operation for manager");
@@ -73,7 +75,7 @@ public class App {
             if (input.hasNextInt()) {
                     switch (input.nextInt()) {
                         case 1:
-                            //dataManipulation();
+                            administrator();
                             break;
                         case 2:
                             if (is_table_created){
@@ -81,7 +83,7 @@ public class App {
                             }else {
                                 System.out.println("\nNo table exists now! Please create table first.");
                                 System.out.println("Return to the main menu");
-                                initialMenu();
+//                                initialMenu();
                             }
                             break;
                         case 3:
@@ -92,34 +94,82 @@ public class App {
                             System.exit(0);
                         default:
                             System.out.println("\nUnknown action! Please select again.");
+                            break;
                     }
                 } else {
                     System.out.println("\nUnknown action! Please select again.");
                     input.next();
-                }
+                } 
         }  
     }
-    
-    public static void readData() throws FileNotFoundException, SQLException{
-    	System.out.println("\nType in the Source Data Folder Path: ");
-    	Scanner input = new Scanner(System.in);
-        String folderPath;
+    private static void administrator() throws SQLException, FileNotFoundException, InterruptedException{
         
-        folderPath = input.nextLine();//read folder path from user input
-        input.close();
+        Scanner sc = new Scanner(System.in);
+        boolean print=true;
+        while(true) {
+            System.out.println("\nWhat kind of operation would you like to perform??");
+           	System.out.println("1. Create All Tables");
+            System.out.println("2. Delete All Tables");
+            System.out.println("3. Load Data into Tables");
+            System.out.println("4. Show Information in Tables");
+            System.out.println("5. Return to main menu");
+            System.out.print("Enter your choice: ");
+
+            if (sc.hasNextInt()) {
+                switch (sc.nextInt()) {
+                case 1:
+//                    createTables();
+                	print = true;
+                    break;
+                case 2:
+//                    dropTables();
+                	print = true;
+                    break;
+                case 3:
+                    readData();
+                    print = true;
+                    break;
+                case 4:
+//                    showInformation();
+                    break;
+                case 5:
+                    return;
+                default:
+                    System.out.println("\nUnknown action! Please select again.");
+                    print = true;
+                    break;
+                }//end switch
+            } else {
+                System.out.println("\nUnknown action! Please select againnn.");
+                try {
+                	sc.next();
+                }catch (NoSuchElementException e) {
+                	break;
+                }
+            }
+        }//end of while loop
+    
+    }// edn of data manupulation
+
+    public static void readData() throws FileNotFoundException, SQLException, InterruptedException{
+    	System.out.println("\nType in the Source Data Folder Path: ");
+    	Scanner input2 = new Scanner(System.in);
+        String folderPath;
+        folderPath = input2.nextLine();//read folder path from user input
+    	
     	File folder = new File(folderPath);
     	File[] listOfFiles = null;
     	
     	try {
     		listOfFiles = folder.listFiles();
     		for (int i = 0; i < listOfFiles.length; i++) {
-//        		System.out.println(listOfFiles[i].getAbsolutePath());
     			readFile(listOfFiles[i].getAbsolutePath());
         	}
     	} catch (NullPointerException e) {
     		System.err.println(folderPath + " directory does not exist.");
-    		//initialMenu();
-    	}	
+    		TimeUnit.SECONDS.sleep(1);
+    		return;
+    	}
     }
     public static void readFile(String fileName) throws FileNotFoundException, SQLException{
     	File file = new File(fileName);
@@ -129,7 +179,7 @@ public class App {
 		} catch (FileNotFoundException e) {
 			System.err.println(fileName + " not found.");
             System.out.println("Back to Main Menu!");
-            initialMenu();
+           // initialMenu();
 		}
         if(fileName.contains("category.txt")){//insert into category
             while (data.hasNext() == true) {
@@ -179,6 +229,5 @@ public class App {
             }
             System.out.println("\nProcessing.....Done");
         }
-        data.close();
     }
 }
