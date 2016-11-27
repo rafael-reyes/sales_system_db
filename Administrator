@@ -1,0 +1,69 @@
+Statement stmt = conn.createstatement();
+
+/////1.1 Create Table/////
+//Create table for Category
+stmt.executeUpdate("CREATE TABLE Category" + "(cID INTEGER, cName CHAR(20),PRIMARY KEY (cID),"
++ "CONSTRAINT Check_cID CHECK (cID >= 1 AND cID <= 9)");
+
+//Create table for Manufacturer
+stmt.executeUpdate("CREATE TABLE Manufacturer" +
+"(mID INTEGER, mName CHAR(20), mAddress CHAR(50), mPhoneNumber INTEGER, PRIMARY KEY (mID),"
++ "CONSTRAINT Check_mID CHECK (mID >= 1 AND mID <= 99),"
++ "CONSTRAINT Check_mPhoneNumber CHECK (mPhoneNumber >= 10000000 AND mPhoneNumber<= 99999999)");
+
+//Create table for Part
+stmt.executeUpdate("CREATE TABLE Part" + "(pID INTEGER, pName CHAR(20), pPrice INTEGER, mID INTEGER, cID INTEGER, pWarrantyPeriod INTEGER, pAvailableQuantity INTEGER, PRIMARY KEY (pID),"
++ "CONSTRAINT Check_pID CHECK  (pID >= 1 AND pID <= 999),"
++ "CONSTRAINT Check_pPrice CHECK  (pPrice >= 1 AND pPrice <= 99999),"
++ "CONSTRAINT Check_mID	CHECK  (mID >= 1 AND mID <= 99),"
++ "CONSTRAINT Check_cID	CHECK  (cID >= 1 AND cID <= 9),"
++ "CONSTRAINT Check_pWarrantyPeriod	CHECK  (pWarrantyPeriod >= 1 AND pWarrantyPeriod <= 99),"
++ "CONSTRAINT Check_pAvailableQuantity	CHECK  (pAvailableQuantity >= 1 AND pAvailableQuantity <= 99)");
+
+//Create table for Salesperson
+stmt.executeUpdate("CREATE TABLE Salesperson" + "(sID INTEGER, sName CHAR(20), sAddress CHAR(50), sPhoneNumber INTEGER, sExperience INTEGER, PRIMARY KEY (sID),"
++ "CONSTRAINT Check_sID CHECK  (sID >= 1 AND sID <= 99),"
++ "CONSTRAINT Check_sPhoneNumber CHECK (sPhoneNumber >= 10000000 AND sPhoneNumber<= 99999999),"
++ "CONSTRAINT Check_sExperience	CHECK  (sExperience >= 1 AND sExperience <= 9)");
+
+//Create table for TransactionRecords
+stmt.executeUpdate("CREATE TABLE TransactionRecords" + "(tID INTEGER, pID INTEGER, sID INTEGER, tDate DATE NOT NULL, PRIMARY KEY (tID),"
++ "CONSTRAINT Check_tID CHECK  (tID >= 1 AND tID <= 9999),"
++ "CONSTRAINT Check_pID	CHECK  (pID >= 1 AND pID <= 999),"
++ "CONSTRAINT Check_sID	CHECK  (sID >= 1 AND sID <= 99),");
+
+
+/////1.2 Delete Tables/////
+//Drop table Category
+stmt.executeUpdate("DROP TABLE Category");
+
+//Drop table Manufacturer
+stmt.executeUpdate("DROP TABLE Manufacturer");
+
+//Drop table Part
+stmt.executeUpdate("DROP TABLE Part");
+
+//Drop table Salesperson
+stmt.executeUpdate("DROP TABLE Salesperson");
+
+//Drop table TransactionRecords
+stmt.executeUpdate("DROP TABLE TransactionRecords");
+
+
+/////1.3 Load from datafile/////
+
+
+
+/////1.4 Show no. of records in each table/////
+int countC = stmt.executeUpdate("SELECT  COUNT(*) FROM Category");
+int countM = stmt.executeUpdate("SELECT  COUNT(*) FROM Manufacturer");
+int countP = stmt.executeUpdate("SELECT  COUNT(*) FROM Part");
+int countS = stmt.executeUpdate("SELECT  COUNT(*) FROM Salesperson");
+int countT = stmt.executeUpdate("SELECT  COUNT(*) FROM TransactionRecords");
+
+System.out.println(
+"Category: " + countC + "\n" +
+"Manufacturer: " + countM + "\n" +
+"Part: " + countP + "\n" +
+"Salesperson: " + countS + "\n" +
+"TransactionRecords: " + countT);
