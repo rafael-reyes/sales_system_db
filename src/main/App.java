@@ -306,7 +306,7 @@ public class App {
             stmt = conn.createStatement();
             rs = stmt.executeQuery("SELECT count(*) AS COUNT FROM " + table);
             while (rs.next()) {
-            System.out.printf("|%20s|%20d|\n", table, rs.getInt("COUNT"));
+            	System.out.printf("|%20s|%20d|\n", table, rs.getInt("COUNT"));
             }
 
         } catch (SQLException e) {
