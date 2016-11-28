@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 public class App {
 	//java -classpath mysql-jdbc.jar:. main.App
-    private final static String DB_USERNAME = "db138";//"db141";
-    private final static String DB_PASSWORD = "fbf08767";//"e9577d46";
+    private final static String DB_USERNAME = "db141";
+    private final static String DB_PASSWORD = "e9577d46";
 	private final static String DB_URL = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2712/"+DB_USERNAME+"?autoReconnect=true&useSSL=false";
     
 	private final static SimpleDateFormat dateForm = new SimpleDateFormat("dd/MM/yyyy");
@@ -32,6 +32,7 @@ public class App {
     	try {
 			Class.forName("com.mysql.jdbc.Driver");
 		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 			System.err.println("Unable to load the driver class!");
 			return;
 		}
@@ -84,14 +85,13 @@ public class App {
                             break;
                         case 2:
                             if (is_table_created){
-                            	//salesperson();
+                            	salesperson();
                             }else {
-                                System.out.println("\nNo table exists now! Please create table first.");
-                                System.out.println("Return to the main menu");
+                                System.out.println("\nThere currently exist no tables!");
                             }
                             break;
                         case 3:
-                        	//manager();
+                        	manager();
                         	break;
                         case 4: 
                             System.out.println("\nExit Program, Bye!");
@@ -127,7 +127,8 @@ public class App {
     private static void administrator() throws SQLException, FileNotFoundException, InterruptedException, ParseException{   
         Scanner sc = new Scanner(System.in);
         while(true) {
-            System.out.println("\nWhat kind of operation would you like to perform??");
+        	System.out.println("\n--------------- Administrator Menu ----------------");
+            System.out.println("What kind of operation would you like to perform??");
            	System.out.println("1. Create All Tables");
             System.out.println("2. Delete All Tables");
             System.out.println("3. Load Data into Tables");
@@ -147,7 +148,7 @@ public class App {
                     loadData();
                     break;
                 case 4:
-                    //showInfo();
+                    showNumRec();
                     break;
                 case 5:
                     return;
@@ -287,10 +288,237 @@ public class App {
             System.out.println("\nProcessing.....Done");
         }
     }
+    public static void showNumRec() throws FileNotFoundException, SQLException, InterruptedException, ParseException{
+    	if (!is_table_created){
+    		System.out.println("Oops there do not exist any tables!");
+            return;
+    	}
+    	System.out.println("Number of records in each Table:");
+    	for(String table: Queries.TABLES){
+    		showTableRec(table);
+    	}
+    }
+    public static void showTableRec(String table) throws FileNotFoundException, SQLException, InterruptedException, ParseException{
+        Statement stmt=null;
+        ResultSet rs =null;
+        try {
+            conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery("SELECT count(*) AS COUNT FROM " + table);
+            while (rs.next()) {
+            System.out.printf("|%20s|%20d|\n", table, rs.getInt("COUNT"));
+            }
+
+        } catch (SQLException e) {
+            //e.printStackTrace();
+            System.out.println("Oops there do not exist any tables!");
+            System.out.println("...returning to Main Menu...");
+            initialMenu();
+        } finally{ 
+            rs.close();
+            stmt.close();
+        }
+    }
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Salesperson~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    private static void salesperson() throws SQLException, FileNotFoundException, InterruptedException, ParseException{   
+        Scanner sc = new Scanner(System.in);
+        while(true) {
+        	System.out.println("\n--------------- Salesperson Menu ----------------");
+            System.out.println("\nWhat kind of operation would you like to perform??");
+           	System.out.println("1. Search for parts");
+            System.out.println("2. Sell a part");
+            System.out.println("3. Return to Main Menu");
+            System.out.print("Enter your choice: ");
+
+            if (sc.hasNextInt()) {
+                switch (sc.nextInt()) {
+                case 1:
+                	searchPart();
+                    break;
+                case 2:
+                    //deleteTables();
+                    break;
+                case 3:
+                    return;
+                default:
+                    System.out.println("\nInvalid input.");
+                    break;
+                }
+            } else {
+                System.out.println("\nInvalid input.");
+                try {
+                	sc.next();
+                }catch (NoSuchElementException e) {
+                	break;
+                }
+            }
+        }
     
+    } 
+    private static void searchPart()throws SQLException{
+        int number =1;
+        Scanner criteria = new Scanner(System.in);
+        while(true) {
+        	 System.out.println("\nChoose the Search Criterion ");
+             System.out.println("1. Part Name");
+             System.out.println("2. Manufacturer Name");
+             System.out.println("3. Return to Salesperson Menu");
+             System.out.print("\nType in the Search Criterion: ");
+
+            if (criteria.hasNextInt()) {
+            	number = criteria.nextInt();
+                switch (number) {
+                case 1:
+                	searchBy(number);
+                    break;
+                case 2:
+                	searchBy(number);
+                    break;
+                case 3:
+                	return;
+                default:
+                    System.out.println("\nInvalid input.");
+                    break;
+                }
+            } else {
+                System.out.println("\nInvalid input.");
+                try {
+                	criteria.next();
+                }catch (NoSuchElementException e) {
+                	break;
+                }
+            }
+        }
+    }
+    public static void searchBy(int number) throws SQLException{
+    	String search;
+    	int ord = 0;
+        Scanner scan = new Scanner(System.in);
+        System.out.print("\nType in the search word: ");
+        search = scan.nextLine();
+        Scanner scan2 = new Scanner(System.in);
+        while(true) {
+       	 System.out.println("\nChoose the ordering");
+            System.out.println("1. By price, descending");
+            System.out.println("2. By price, ascending");
+            System.out.println("3. Return to Search Criteria");
+            System.out.print("\nChoose the ordering: ");
+
+           if (scan2.hasNextInt()) {
+           	   ord = scan2.nextInt();
+               switch (ord) {
+               case 1:
+            	   recieveResults(number, ord, search);
+                   break;
+               case 2:
+            	   recieveResults(number, ord, search);
+                   break;
+               case 3:
+            	   return;
+               default:
+                   System.out.println("\nInvalid input.");
+                   break;
+               }
+           } else {
+               System.out.println("\nInvalid input.");
+               try {
+               	scan2.next();
+               }catch (NoSuchElementException e) {
+               	break;
+               }
+           }
+       }
+       
+    }
+    private static void recieveResults(int number, int ord, String search) throws SQLException{
+    	 PreparedStatement pstmt=null;
+         ResultSet rs =null;
+
+         try {
+             conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);  
+             switch(number){
+                 case 1:
+                     if (ord ==1) {
+                     	pstmt = conn.prepareStatement(App.Queries.SEARCHFORPARTS[0]);
+                     }else if (ord ==2) {
+                     	pstmt = conn.prepareStatement(App.Queries.SEARCHFORPARTS[2]);
+                     }
+                     break;
+                 case 2:
+                 	if (ord ==1) {
+                     	pstmt = conn.prepareStatement(App.Queries.SEARCHFORPARTS[1]);
+                     }else if (ord ==2) {
+                     	pstmt = conn.prepareStatement(App.Queries.SEARCHFORPARTS[3]);
+                     }
+                     break;
+             }
+
+             pstmt.setString(1, "%"+search+"%");
+             rs = pstmt.executeQuery();
+
+             System.out.printf("\n|%10s|%20s|%20s|%20s|%20s|%20s|%20s|\n", "Part ID", "Part Name", "Manufacturer","Category","Quantity", "Warranty","Price");
+             while (rs.next()) {
+                 if(rs.getInt(5) != 0){
+                     System.out.printf("|%10d|%20s|%20s|%20s|%20d|%20d|%20d|\n",rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4),rs.getInt(5),rs.getInt(6),rs.getInt(7));
+                 }
+             }
+
+             System.out.println("\nEnd of Query Result");
+
+         }catch (SQLException ex) {
+             System.out.println("\nCant search and list parts");
+         }finally{
+         	rs.close();
+             pstmt.close();
+         }
+    }
+    
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Manager Menu~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/ 
+    public static void manager(){
+    	Scanner sc = new Scanner(System.in);
+        while(true) {
+        	System.out.println("\n--------------- Manager Menu ----------------");
+            System.out.println("What kind of operation would you like to perform??");
+           	System.out.println("1. Count the number of transaction records of each salesperson within a given range on years of experience");
+            System.out.println("2. Show the total sales value of each manufacturer");
+            System.out.println("3. Show the N most popular parts");
+            System.out.println("4. Return to main menu");
+            System.out.print("Enter your choice: ");
+
+            if (sc.hasNextInt()) {
+                switch (sc.nextInt()) {
+                case 1:
+//                	createTables();
+                    break;
+                case 2:
+//                    deleteTables();
+                    break;
+                case 3:
+//                    loadData();
+                    break;
+                case 4:
+                    return;
+                default:
+                    System.out.println("\nInvalid input.");
+                    break;
+                }
+            } else {
+                System.out.println("\nInvalid input.");
+                try {
+                	sc.next();
+                }catch (NoSuchElementException e) {
+                	break;
+                }
+            }
+        }
+    }
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/   
     private static class Queries {
-
+    	public final static String[] TABLES = {
+    			"Category","Manufacturer","Part","Salesperson","TransactionRecords"
+    	};
+    	
         public final static String[] CREATETABLES = {
 
             "CREATE TABLE Category (cID INTEGER, cName CHAR(20),PRIMARY KEY (cID), CONSTRAINT Check_cID CHECK (cID >= 1 AND cID <= 9));",
@@ -337,9 +565,12 @@ public class App {
 
         public final static String INSERTTRANSACTIONS =
             "INSERT INTO TransactionRecords VALUES(?,?,?,?);";
-            //"INSERT INTO TransactionRecords VALUES(?,?,?,to_date(?, 'DD/MM/YYYY'));";
-        	//"INSERT INTO TransactionRecords VALUES(?,?,?,str_to_date(?, 'DD/MM/YYYY'));";
-        	//"INSERT INTO TransactionRecords VALUES(?,?,?,DATE_FORMAT(?,'%d/%m/%Y'));"; 
-            //"INSERT INTO TransactionRecords VALUES(?,?,?,CONVERT(?,tDate,103));";
+        
+        public final static String[] SEARCHFORPARTS ={
+        		"SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND P.pName LIKE ? ORDER BY P.pPrice DESC",
+                "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND M.mName LIKE ? ORDER BY P.pPrice DESC",
+                "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND P.pName LIKE ? ORDER BY P.pPrice ASC",
+                "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND M.mName LIKE ? ORDER BY P.pPrice ASC"
+        };
     }
 }
