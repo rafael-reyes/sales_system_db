@@ -336,7 +336,7 @@ public class App {
                 	searchPart();
                     break;
                 case 2:
-                    //deleteTables();
+                    sellPart();
                     break;
                 case 3:
                     return;
@@ -458,13 +458,10 @@ public class App {
 
              System.out.printf("\n|%10s|%20s|%20s|%20s|%20s|%20s|%20s|\n", "Part ID", "Part Name", "Manufacturer","Category","Quantity", "Warranty","Price");
              while (rs.next()) {
-                 if(rs.getInt(5) != 0){
+                 if(rs.getInt(7) != 0){
                      System.out.printf("|%10d|%20s|%20s|%20s|%20d|%20d|%20d|\n",rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4),rs.getInt(5),rs.getInt(6),rs.getInt(7));
                  }
              }
-
-             System.out.println("\nEnd of Query Result");
-
          }catch (SQLException ex) {
              System.out.println("\nCant search and list parts");
          }finally{
@@ -473,8 +470,133 @@ public class App {
          }
     }
     
+private static void sellPart() throws SQLException, FileNotFoundException, InterruptedException, ParseException {
+        int sID, pID, nID;
+        Scanner sc = new Scanner(System.in);
+        
+        // get pID input
+        System.out.print("\nEnter the Part ID: ");
+        while (!sc.hasNextInt()) {
+            System.out.print("\nInvalid Input!");
+            System.out.print("\nEnter the Part ID: ");
+            sc.next();
+        }
+        pID = sc.nextInt();
+        
+        // get sID input
+        System.out.print("\nEnter the Salesperson ID: ");
+        while (!sc.hasNextInt()) {
+            System.out.print("\nInvalid Input!");
+            System.out.print("\nEnter the Salesperson ID: ");
+            sc.next();
+        }
+        sID = sc.nextInt();
+
+        if(verify(pID,sID)){
+            PreparedStatement pstmt=null;
+            Statement stmt=null;
+            ResultSet rs =null;
+
+            try {
+            	conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+
+            	stmt = conn.createStatement();
+            	rs = stmt.executeQuery(App.Queries.GENERATENEWID);
+            	if (rs.next()){
+            		nID = rs.getInt(1) + 1;
+            	} else { // TransactionRecords table must be empty
+            		nID = 1;
+            	}
+            
+            	//add transaction 
+            	pstmt = conn.prepareStatement(App.Queries.ADDTRANSACTION[0]);
+            	pstmt.setInt(1, nID);
+            	pstmt.setInt(2, pID);
+            	pstmt.setInt(3, sID);
+            	pstmt.executeUpdate();
+
+            	// update the item quantity
+            	pstmt = conn.prepareStatement(App.Queries.ADDTRANSACTION[1]);
+            	pstmt.setInt(1, pID);
+            	pstmt.executeUpdate();
+
+            	// print info
+            	pstmt = conn.prepareStatement(App.Queries.ADDTRANSACTION[2]);
+            	pstmt.setInt(1, pID);
+            	rs = pstmt.executeQuery();
+            	while(rs.next()){
+            		System.out.printf("Product: %s(ID: %d) Remaining Quantity: %d\n",rs.getString(1),pID,rs.getInt(2));
+            	}
+            	
+            }catch (SQLException ex) { 
+            	ex.printStackTrace();
+            	System.out.println("\nERROR: Could not add transaction!");
+            }finally{
+                rs.close();
+                pstmt.close();
+            }
+        }
+        else{
+            System.out.println("\nReturning to the Main Menu");
+            initialMenu();
+        }
+
+    }
+private static boolean verify(int pID, int sID) throws SQLException{
+    PreparedStatement pstmt=null;
+    ResultSet rs =null;
+    try{
+    	//check pID
+        pstmt = conn.prepareStatement(App.Queries.CHECK[0]);
+        pstmt.setInt(1,pID);
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            if (rs.getInt(1) == 0) {
+                System.out.println("\nWarn: Part does not exist!");
+                rs.close();
+                pstmt.close();
+                return false;
+            }
+        }
+        
+        conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+        //check sID
+        pstmt = conn.prepareStatement(App.Queries.CHECK[1]);
+        pstmt.setInt(1,sID);
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            if (rs.getInt(1) == 0) {
+                System.out.println("\nWarn: Salesperson does not exist!");
+                rs.close();
+                pstmt.close();
+                return false;
+            }
+        }
+
+        //check for item quantity
+        pstmt = conn.prepareStatement(App.Queries.CHECK[2]);
+        pstmt.setInt(1,pID);
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            if (rs.getInt(1) == 0) {
+                System.out.println("\nWarn: Part is soldout :-(");
+                rs.close();
+                pstmt.close();
+                return false;
+            }
+        }
+
+        }catch (SQLException ex) {
+            System.out.println("\nWarn: Cant create statement in check availability");
+        }finally{
+                rs.close();
+                pstmt.close();
+         }
+        return true;
+}
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Manager Menu~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/ 
-    public static void manager(){
+    public static void manager() throws SQLException{
     	Scanner sc = new Scanner(System.in);
         while(true) {
         	System.out.println("\n--------------- Manager Menu ----------------");
@@ -488,7 +610,7 @@ public class App {
             if (sc.hasNextInt()) {
                 switch (sc.nextInt()) {
                 case 1:
-//                	createTables();
+                	salesRecords();
                     break;
                 case 2:
 //                    deleteTables();
@@ -512,13 +634,64 @@ public class App {
             }
         }
     }
+    public static void salesRecords() throws SQLException {
+    	 Scanner sc = new Scanner(System.in);
+    	 int low = 0;
+    	 int upp=0;
+    	 System.out.print("\nType in the lower bound for years of experience: ");
+         while (!sc.hasNextInt()) {
+             System.out.print("\nInvalid Input!");
+             System.out.print("\nType in the lower bound for years of experience: ");
+             sc.next();
+         }
+         low = sc.nextInt();
 
+         System.out.print("\nType in the upper bound for years of experience: ");
+         while (!sc.hasNextInt()) {
+             System.out.print("\nInvalid Input!");
+             System.out.print("\nType in the upper bound for years of experience: ");
+             sc.next();
+         }
+         upp = sc.nextInt();
+         countTrans(low, upp);
+    }
+    private static void countTrans(int l, int u) throws SQLException{ 
+        Statement stmt=null;
+        PreparedStatement pstmt=null;
+        ResultSet rs =null;
+        try{
+            conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
+            stmt = conn.createStatement();
+
+            stmt.executeUpdate(App.Queries.CREATEVIEW[0]);
+            stmt.executeUpdate(App.Queries.CREATEVIEW[1]);
+            
+            pstmt = conn.prepareStatement(App.Queries.SHOWSALESRANK);
+            pstmt.setInt(1, l);
+            pstmt.setInt(2, u);
+            rs = pstmt.executeQuery();
+
+            // print the query result
+            System.out.printf("\n|%20s|%20s|%25s|%25s|\n", "ID","Name","Years of Experience","Number of Transactions");
+            while (rs.next()) {
+            	System.out.printf("|%20d|%20s|%25d|%25d|\n",rs.getInt(1), rs.getString(2), rs.getInt(3), rs.getInt(4));        
+            }
+            //drop temp table
+            stmt.executeUpdate(App.Queries.DROPVIEW[0]);
+            stmt.executeUpdate(App.Queries.DROPVIEW[1]);
+        } catch (SQLException ex) {
+            System.out.println("\nCant show sales rank of salesperson");
+        }finally{
+        	rs.close();
+            stmt.close();
+            pstmt.close();
+        }
+    }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/   
     private static class Queries {
     	public final static String[] TABLES = {
     			"Category","Manufacturer","Part","Salesperson","TransactionRecords"
     	};
-    	
         public final static String[] CREATETABLES = {
 
             "CREATE TABLE Category (cID INTEGER, cName CHAR(20),PRIMARY KEY (cID), CONSTRAINT Check_cID CHECK (cID >= 1 AND cID <= 9));",
@@ -572,5 +745,29 @@ public class App {
                 "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND P.pName LIKE BINARY ? ORDER BY P.pPrice ASC",
                 "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND M.mName LIKE BINARY ? ORDER BY P.pPrice ASC"
         };
+        public final static String[] CHECK = {
+        		"SELECT COUNT(*) FROM Part P WHERE P.pID = ?",
+                "SELECT COUNT(*) FROM Salesperson S WHERE S.sID = ?",
+                "SELECT P.pAvailableQuantity FROM Part P WHERE P.pID = ?"
+
+        };
+        public final static String[] ADDTRANSACTION ={
+        		"INSERT INTO TransactionRecords VALUES (?,?,?, CURRENT_DATE)",
+                "UPDATE Part SET pAvailableQuantity = pAvailableQuantity - 1 WHERE pID = ?",
+                "SELECT P.pName, P.pAvailableQuantity FROM Part P WHERE P.pID = ?"
+        };
+        public final static String GENERATENEWID = 
+                "SELECT MAX(T.tID) FROM TransactionRecords T";
+        
+        public final static String[] DROPVIEW ={
+        		"DROP VIEW temp",
+                "DROP VIEW temp1"
+        };
+        public final static String[] CREATEVIEW = {
+        		"CREATE OR REPLACE VIEW temp AS SELECT T.sID, T.tID FROM TransactionRecords T",
+                "CREATE OR REPLACE VIEW temp1 AS SELECT sID, COUNT(*) AS numTrans FROM temp GROUP BY sID"
+        };
+        public final static String SHOWSALESRANK =
+                "SELECT S.sID, S.sName, S.sExperience, temp1.numTrans FROM Salesperson S, temp1 WHERE S.sID = temp1.sID AND S.sExperience BETWEEN ? AND ? ORDER BY S.sID DESC";     
     }
 }
