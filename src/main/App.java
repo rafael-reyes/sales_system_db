@@ -567,10 +567,10 @@ public class App {
             "INSERT INTO TransactionRecords VALUES(?,?,?,?);";
         
         public final static String[] SEARCHFORPARTS ={
-        		"SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND P.pName LIKE ? ORDER BY P.pPrice DESC",
-                "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND M.mName LIKE ? ORDER BY P.pPrice DESC",
-                "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND P.pName LIKE ? ORDER BY P.pPrice ASC",
-                "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND M.mName LIKE ? ORDER BY P.pPrice ASC"
+        		"SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND P.pName LIKE BINARY ? ORDER BY P.pPrice DESC",
+                "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND M.mName LIKE BINARY ? ORDER BY P.pPrice DESC",
+                "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND P.pName LIKE BINARY ? ORDER BY P.pPrice ASC",
+                "SELECT P.pID, P.pName, M.mName, C.cName, P.pAvailableQuantity, P.pWarrantyPeriod, P.pPrice FROM Part P, Category C, Manufacturer M WHERE P.mID = M.mID AND P.cID = C.cID AND M.mName LIKE BINARY ? ORDER BY P.pPrice ASC"
         };
     }
 }
