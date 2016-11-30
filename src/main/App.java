@@ -613,10 +613,10 @@ private static boolean verify(int pID, int sID) throws SQLException{
                 	salesRecords();
                     break;
                 case 2:
-//                    deleteTables();
+                   manuSalesValue();
                     break;
                 case 3:
-//                    loadData();
+                    popN();
                     break;
                 case 4:
                     return;
@@ -686,6 +686,58 @@ private static boolean verify(int pID, int sID) throws SQLException{
             stmt.close();
             pstmt.close();
         }
+    }
+    private static void manuSalesValue() throws SQLException{
+        Statement stmt=null;
+        ResultSet rs =null;
+    	try {
+            conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);  
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(App.Queries.MANUSALESVALUE);
+
+            System.out.printf("\n|%20s|%20s|%20s|\n", "Manufacturer ID", "Manufacturer Name", "Total Sales Value");
+            while (rs.next()) {
+                if(rs.getInt(3) != 0){
+                    System.out.printf("|%20d|%20s|%20d|\n",rs.getInt(1), rs.getString(2), rs.getInt(3));
+                }
+            }
+        }catch (SQLException ex) {
+            System.out.println("\nCant search and list parts");
+        }finally{
+        	rs.close();
+            stmt.close();
+        }
+    }
+    private static void popN() throws SQLException{
+    	Scanner sc = new Scanner(System.in);
+    	int n = 0;
+   	 	System.out.print("\nType in the number of parts: ");
+        while (!sc.hasNextInt()) {
+            System.out.print("\nInvalid Input!");
+            System.out.print("\nType in the number of parts: ");
+            sc.next();
+        }
+        n = sc.nextInt();
+        PreparedStatement pstmt=null;
+        ResultSet rs =null;
+     	try {
+             conn = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);  
+             pstmt = conn.prepareStatement(App.Queries.SHOWNPOP);
+             pstmt.setInt(1, n);
+             rs = pstmt.executeQuery();
+
+             System.out.printf("\n|%20s|%20s|%20s|\n", "Part ID", "Part Name", "No. of Transactions");
+             while (rs.next()) {
+            	 if(rs.getInt(3)!=0){
+                     System.out.printf("|%20d|%20s|%20d|\n",rs.getInt(1), rs.getString(2), rs.getInt(3));
+                 }
+             }
+         }catch (SQLException ex) {
+             System.out.println("\nCant search and list parts");
+         }finally{
+         	rs.close();
+            pstmt.close();
+         }
     }
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/   
     private static class Queries {
@@ -769,5 +821,11 @@ private static boolean verify(int pID, int sID) throws SQLException{
         };
         public final static String SHOWSALESRANK =
                 "SELECT S.sID, S.sName, S.sExperience, temp1.numTrans FROM Salesperson S, temp1 WHERE S.sID = temp1.sID AND S.sExperience BETWEEN ? AND ? ORDER BY S.sID DESC";     
+        
+        public final static String MANUSALESVALUE =
+        		"SELECT M.mID, M.mName, SUM(P.pPrice) AS TotalSalesValue FROM Manufacturer M, Part P, TransactionRecords T WHERE M.mID = P.mID AND P.pID = T.pID GROUP BY M.mName ORDER BY TotalSalesValue DESC;";
+       
+        public final static String SHOWNPOP =
+        		"SELECT P.pID, P.pName, COUNT(T.tID) AS TotalTrans FROM Part P, TransactionRecords T WHERE P.pID = T.pID GROUP BY P.pName ORDER BY TotalTrans DESC limit ?;";
     }
 }
