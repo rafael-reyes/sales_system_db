@@ -23,7 +23,7 @@ public class App {
 	private final static String DB_URL = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2712/"+DB_USERNAME+"?autoReconnect=true&useSSL=false";
     
 	private final static SimpleDateFormat dateForm = new SimpleDateFormat("dd/MM/yyyy");
-    static boolean is_table_created = false;
+    static boolean tablesExist = false;
     
     private static Scanner input;
     private static Connection conn;
@@ -51,13 +51,13 @@ public class App {
 	        stmt = conn.createStatement();
 	        rs = stmt.executeQuery(query); 
 	        System.out.println("\n********Tables Already Exist in Database!********\n");
-	        is_table_created = true;
+	        tablesExist = true;
 	        
 	    } catch (Exception e ) {
 	    	//table does not exist or some other problem
 	    	//e.printStackTrace();
 	    	System.out.println("\n*********Tables Currently Not Exist in Database!************\n");
-	    	is_table_created = false;
+	    	tablesExist = false;
 	    }
 		
 	    stmt.close();
@@ -84,7 +84,7 @@ public class App {
                             administrator();
                             break;
                         case 2:
-                            if (is_table_created){
+                            if (tablesExist){
                             	salesperson();
                             }else {
                                 System.out.println("\nThere currently exist no tables!");
@@ -169,13 +169,13 @@ public class App {
     } 
     
     private static void createTables()  throws SQLException {  
-        if ( is_table_created) {
+        if ( tablesExist) {
             System.out.println("\nTables already exists. Try dropping tables first");
         } else{
             try{
                 executeQuery(App.Queries.CREATETABLES);
                 System.out.println("\nProcessing.....Done");
-                is_table_created = true;
+                tablesExist = true;
              } catch (SQLSyntaxErrorException e) {
                  System.out.println("\nTables already exists. Try dropping tables first");            
              }
@@ -183,13 +183,13 @@ public class App {
     }
     
     private static void deleteTables()  throws SQLException {  
-        if (!is_table_created) { 
+        if (!tablesExist) { 
             System.out.println("\nOops there are no tables to drop!");
         } else{
             try{
                 executeQuery(App.Queries.DELETETABLES);
                 System.out.println("\nProcessing.....Done");
-                is_table_created = false;
+                tablesExist = false;
             } catch (SQLSyntaxErrorException e) {
               System.out.println("\nOops there are no tables to drop!");            
             }
@@ -289,7 +289,7 @@ public class App {
         }
     }
     public static void showNumRec() throws FileNotFoundException, SQLException, InterruptedException, ParseException{
-    	if (!is_table_created){
+    	if (!tablesExist){
     		System.out.println("Oops there do not exist any tables!");
             return;
     	}
