@@ -17,7 +17,7 @@ import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 public class App {
-	//java -classpath mysql-jdbc.jar:. main.App
+
     private final static String DB_USERNAME = "db141";
     private final static String DB_PASSWORD = "e9577d46";
 	private final static String DB_URL = "jdbc:mysql://projgw.cse.cuhk.edu.hk:2712/"+DB_USERNAME+"?autoReconnect=true&useSSL=false";
